@@ -1,10 +1,8 @@
 #include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_wifi.h"
-#include "esp_event_loop.h"
 
-esp_wifi_set_mode();
+#define MY_SSID CONFIG_ESP_WIFI_SSID
+#define MY_PASS CONFIG_ESP_WIFI_PASSWORD
+
 void app_main(void)
 {
     printf("Hello world!");
