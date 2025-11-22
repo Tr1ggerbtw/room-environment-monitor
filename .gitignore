@@ -12,3 +12,4 @@ venv/
 env/
 .env
 sdkconfig
+sdkconfig.old
