@@ -7,12 +7,13 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+#include "esp_http_client.h"
 
 #define MY_SSID CONFIG_ESP_WIFI_SSID
 #define MY_PASS CONFIG_ESP_WIFI_PASSWORD
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
-#define POST_URL  "http://192.168.0.101:3000/ping"
+#define POST_URL "http://192.168.0.102:3000/ping"
 
 static const char *TAG = "Wifi-Station";
 static const uint8_t MAX_RETRY = 10;
@@ -104,4 +105,23 @@ void app_main(void) {
     ESP_ERROR_CHECK(ret);
 
     wifi_init_sta();
+
+    esp_http_client_config_t httpConf = 
+    {
+        .url = POST_URL,
+        .method = HTTP_METHOD_POST,
+        .event_handler = NULL, 
+        .timeout_ms = 2500
+    };
+
+    esp_http_client_handle_t client = esp_http_client_init(&httpConf);
+
+    char *ping_data = "ping";
+
+    esp_http_client_set_header(client, "Content-Type", "text/plain");
+    esp_http_client_set_post_field(client, ping_data, strlen(ping_data));
+
+    esp_http_client_perform(client);
+    ESP_LOGI(TAG, "Http-post done");
+    esp_http_client_cleanup(client);
 }
