@@ -8,6 +8,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "esp_http_client.h"
+#include "cJSON.h"
 
 #define MY_SSID CONFIG_ESP_WIFI_SSID
 #define MY_PASS CONFIG_ESP_WIFI_PASSWORD
@@ -96,6 +97,38 @@ s_wifi_event_group = xEventGroupCreate();
         }
 }
 
+esp_http_client_handle_t http_client_init()
+{
+    esp_http_client_config_t httpConf = 
+    {
+        .url = POST_URL,
+        .method = HTTP_METHOD_POST,
+        .event_handler = NULL, 
+        .timeout_ms = 2500
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&httpConf);
+    return client;
+}
+
+void http_client_post(esp_http_client_handle_t client)
+{
+    cJSON *json_data = NULL; 
+    char *string_json = NULL;
+
+    json_data = cJSON_CreateObject();
+
+    cJSON_AddNumberToObject(json_data, "temperature", 24.5);
+    cJSON_AddNumberToObject(json_data, "humidity", 60);
+    string_json = cJSON_Print(json_data);
+    cJSON_free(json_data);
+    
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_post_field(client, string_json, strlen(string_json));
+    esp_http_client_perform(client);
+
+    free(string_json);
+}
+
 void app_main(void) {
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -106,22 +139,8 @@ void app_main(void) {
 
     wifi_init_sta();
 
-    esp_http_client_config_t httpConf = 
-    {
-        .url = POST_URL,
-        .method = HTTP_METHOD_POST,
-        .event_handler = NULL, 
-        .timeout_ms = 2500
-    };
+    esp_http_client_handle_t client = http_client_init();
 
-    esp_http_client_handle_t client = esp_http_client_init(&httpConf);
-
-    char *ping_data = "ping";
-
-    esp_http_client_set_header(client, "Content-Type", "text/plain");
-    esp_http_client_set_post_field(client, ping_data, strlen(ping_data));
-
-    esp_http_client_perform(client);
-    ESP_LOGI(TAG, "Http-post done");
+    http_client_post(client);
     esp_http_client_cleanup(client);
 }
