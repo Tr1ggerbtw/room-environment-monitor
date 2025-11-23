@@ -104,14 +104,16 @@ esp_http_client_handle_t http_client_init()
         .url = POST_URL,
         .method = HTTP_METHOD_POST,
         .event_handler = NULL, 
-        .timeout_ms = 2500
+        .timeout_ms = 7500
     };
     esp_http_client_handle_t client = esp_http_client_init(&httpConf);
     return client;
 }
 
-void http_client_post(esp_http_client_handle_t client)
+void http_client_post(void *pvParameters)
 {
+    esp_http_client_handle_t client = (esp_http_client_handle_t)pvParameters;
+    for(;;){
     cJSON *json_data = NULL; 
     char *string_json = NULL;
 
@@ -119,14 +121,24 @@ void http_client_post(esp_http_client_handle_t client)
 
     cJSON_AddNumberToObject(json_data, "temperature", 24.5);
     cJSON_AddNumberToObject(json_data, "humidity", 60);
+
     string_json = cJSON_Print(json_data);
-    cJSON_free(json_data);
+    cJSON_Delete(json_data);
     
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_post_field(client, string_json, strlen(string_json));
-    esp_http_client_perform(client);
+
+    esp_err_t err = esp_http_client_perform(client);
+        if (err == ESP_OK) 
+        {
+            ESP_LOGI("HTTP-CLIENT", "HTTP POST Status = %d", esp_http_client_get_status_code(client));
+        } else {
+            ESP_LOGI("HTTP-CLIENT", "HTTP POST request failed: %s", esp_err_to_name(err));
+        }
 
     free(string_json);
+    vTaskDelay(pdMS_TO_TICKS(25000));
+    }
 }
 
 void app_main(void) {
@@ -141,6 +153,5 @@ void app_main(void) {
 
     esp_http_client_handle_t client = http_client_init();
 
-    http_client_post(client);
-    esp_http_client_cleanup(client);
+    xTaskCreate(http_client_post, "http-client", 8192, (void*)client, 2, NULL);
 }
