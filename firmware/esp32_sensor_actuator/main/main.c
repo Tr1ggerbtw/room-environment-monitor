@@ -115,8 +115,9 @@ esp_http_client_handle_t http_client_init()
 
 void http_client_post(void *pvParameters)
 {
-    esp_http_client_handle_t client = (esp_http_client_handle_t)pvParameters;
     for(;;){
+    esp_http_client_handle_t client = http_client_init();
+
     cJSON *json_data = NULL; 
     char *string_json = NULL;
 
@@ -140,6 +141,7 @@ void http_client_post(void *pvParameters)
         }
 
     free(string_json);
+    esp_http_client_cleanup(client);
     vTaskDelay(pdMS_TO_TICKS(25000));
     }
 }
@@ -154,6 +156,5 @@ void app_main(void) {
 
     wifi_init_sta();
 
-    esp_http_client_handle_t client = http_client_init();
-    xTaskCreate(http_client_post, "http-client", 8192, (void*)client, 2, NULL);
+    xTaskCreate(http_client_post, "http-client", 8192, NULL, 2, NULL);
 }
