@@ -16,7 +16,10 @@
 #define WIFI_FAIL_BIT      BIT1
 #define POST_URL "http://192.168.0.102:3000/ping"
 
-static const char *TAG = "Wifi-Station";
+static const char *WIFI_TAG = "Wifi-Station";
+static const char *HCLIENT_TAG = "http-client";
+// static const char *HSERVER_TAG = "http-server";
+
 static const uint8_t MAX_RETRY = 10;
 static uint8_t retry_num = 0; 
 
@@ -30,13 +33,13 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
         if(retry_num < MAX_RETRY){
             esp_wifi_connect();
             ++retry_num;
-            ESP_LOGI(TAG, "Retrying to stabilize connection to Wi-Fi...");
+            ESP_LOGI(WIFI_TAG, "Retrying to stabilize connection to Wi-Fi...");
         } else {
                 xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
-                ESP_LOGI(TAG, "Connection have failed");
+                ESP_LOGI(WIFI_TAG, "Connection have failed");
                 } 
         } else if(event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP){
-            ESP_LOGI(TAG, "Connection succesful");
+            ESP_LOGI(WIFI_TAG, "Connection succesful");
             retry_num = 0; 
             xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
           }
@@ -88,12 +91,12 @@ s_wifi_event_group = xEventGroupCreate();
 
     if(bits & WIFI_CONNECTED_BIT)
     {
-        ESP_LOGI(TAG, "Connected to ap");
+        ESP_LOGI(WIFI_TAG, "Connected to ap");
     }   else if (bits & WIFI_FAIL_BIT) 
         {
-            ESP_LOGI(TAG, "Failed to connect to AP");
+            ESP_LOGI(WIFI_TAG, "Failed to connect to AP");
         } else {
-            ESP_LOGI(TAG, "Unexpected event");
+            ESP_LOGI(WIFI_TAG, "Unexpected event");
         }
 }
 
@@ -131,9 +134,9 @@ void http_client_post(void *pvParameters)
     esp_err_t err = esp_http_client_perform(client);
         if (err == ESP_OK) 
         {
-            ESP_LOGI("HTTP-CLIENT", "HTTP POST Status = %d", esp_http_client_get_status_code(client));
+            ESP_LOGI(HCLIENT_TAG, "HTTP POST Status = %d", esp_http_client_get_status_code(client));
         } else {
-            ESP_LOGI("HTTP-CLIENT", "HTTP POST request failed: %s", esp_err_to_name(err));
+            ESP_LOGI(HCLIENT_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
         }
 
     free(string_json);
@@ -152,6 +155,5 @@ void app_main(void) {
     wifi_init_sta();
 
     esp_http_client_handle_t client = http_client_init();
-
     xTaskCreate(http_client_post, "http-client", 8192, (void*)client, 2, NULL);
 }
