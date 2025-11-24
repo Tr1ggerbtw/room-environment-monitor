@@ -9,12 +9,15 @@
 #include "nvs_flash.h"
 #include "esp_http_client.h"
 #include "cJSON.h"
+#include "sensorManager.h"
 
 #define MY_SSID CONFIG_ESP_WIFI_SSID
 #define MY_PASS CONFIG_ESP_WIFI_PASSWORD
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
 #define POST_URL "http://192.168.0.102:3000/ping"
+#define periodTime 25000
+
 
 static const char *WIFI_TAG = "Wifi-Station";
 static const char *HCLIENT_TAG = "http-client";
@@ -123,8 +126,17 @@ void http_client_post(void *pvParameters)
 
     json_data = cJSON_CreateObject();
 
-    cJSON_AddNumberToObject(json_data, "temperature", 24.5);
-    cJSON_AddNumberToObject(json_data, "humidity", 60);
+    SensorData_t sensorData;
+
+    esp_err_t result = readData(&sensorData);
+    if(result != ESP_OK)
+    {
+     vTaskDelay(pdMS_TO_TICKS(periodTime));
+     continue;
+    }
+
+    cJSON_AddNumberToObject(json_data, "temperature", sensorData.temperature);
+    cJSON_AddNumberToObject(json_data, "humidity", sensorData.humidity);
 
     string_json = cJSON_Print(json_data);
     cJSON_Delete(json_data);
@@ -137,12 +149,12 @@ void http_client_post(void *pvParameters)
         {
             ESP_LOGI(HCLIENT_TAG, "HTTP POST Status = %d", esp_http_client_get_status_code(client));
         } else {
-            ESP_LOGI(HCLIENT_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+            ESP_LOGE(HCLIENT_TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
         }
 
     free(string_json);
     esp_http_client_cleanup(client);
-    vTaskDelay(pdMS_TO_TICKS(25000));
+    vTaskDelay(pdMS_TO_TICKS(periodTime));
     }
 }
 
