@@ -38,6 +38,7 @@
             margin-top: 450px;
             }
         </style>
+        <script src="./node_modules/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
@@ -46,5 +47,26 @@
             <button id ="btnOn">Turn on</button>
             <button id ="btnOff">Turn off</button>
         </div>
-
 </body>
+
+<script>
+    const BACKEND_URL = "http://192.168.0.102:3000/backend";
+
+    function sendToBackend(command)
+    {
+        axios.post(BACKEND_URL, command, {
+            headers: {
+                'Content-Type': 'text/plain'
+            }
+        })
+    }
+    document.getElementById("btnOn").addEventListener('click', () => {
+        console.log("Sending 1 to backend..")
+        sendToBackend('1');
+    })
+
+    document.getElementById("btnOff").addEventListener('click', () => {
+        sendToBackend('0');
+        console.log("Sending 0 to backend..")
+    })
+</script>
