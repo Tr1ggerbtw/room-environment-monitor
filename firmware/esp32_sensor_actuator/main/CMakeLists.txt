@@ -1,2 +1,3 @@
-idf_component_register(SRCS "main.c"
+idf_component_register(SRCS "sensorManager.c" "main.c"
                     INCLUDE_DIRS ".")
+    

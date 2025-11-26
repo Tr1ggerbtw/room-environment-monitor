@@ -1,0 +1,5 @@
+dependencies:
+  espressif/cjson: "^1.7.19"
+  esp-idf-lib/dht: "1.1.7"
+
+  
