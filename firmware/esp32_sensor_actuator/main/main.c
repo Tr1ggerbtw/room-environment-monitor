@@ -9,6 +9,7 @@
 #include "nvs_flash.h"
 #include "esp_http_client.h"
 #include "cJSON.h"
+#include "esp_http_server.h"
 #include "sensorManager.h"
 
 #define MY_SSID CONFIG_ESP_WIFI_SSID
@@ -16,12 +17,13 @@
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
 #define POST_URL "http://192.168.0.102:3000/ping"
+#define BUF_LEN 1
 #define periodTime 25000
 
 
 static const char *WIFI_TAG = "Wifi-Station";
 static const char *HCLIENT_TAG = "http-client";
-// static const char *HSERVER_TAG = "http-server";
+static const char *HSERVER_TAG = "http-server";
 
 static const uint8_t MAX_RETRY = 10;
 static uint8_t retry_num = 0; 
@@ -103,6 +105,56 @@ s_wifi_event_group = xEventGroupCreate();
         }
 }
 
+esp_err_t uri_post_handler(httpd_req_t *req)
+{
+    char content[BUF_LEN];
+
+    size_t recv_size = req->content_len;
+
+    if (recv_size != 1) 
+    {
+    ESP_LOGE(HSERVER_TAG, "Payload too long: %u bytes received", recv_size);
+    httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Expected 1 byte command");
+    return ESP_FAIL;
+    }
+    
+    httpd_req_recv(req, content, recv_size);
+    
+    if(content[0] == '0')
+    {
+        ESP_LOGI(HSERVER_TAG, "Turning off fan");
+    }
+    else if(content[0] == '1')
+    {
+        ESP_LOGI(HSERVER_TAG, "Turning on fan");
+    } else {
+        ESP_LOGE(HSERVER_TAG, "Unknown command!!!");
+    }
+
+    const char resp[] = "URI POST Response";
+    httpd_resp_send(req, resp, strlen(resp));
+    return ESP_OK;
+}
+httpd_handle_t http_server_start()
+{
+    httpd_config_t httpdConfig = HTTPD_DEFAULT_CONFIG();
+
+    httpd_uri_t uri_post =
+    {
+     .handler = uri_post_handler,
+     .method = HTTP_POST,
+     .uri = "/fan",
+     .user_ctx = NULL
+    };
+    httpd_handle_t server = NULL;
+
+    if (httpd_start(&server, &httpdConfig) == ESP_OK) {
+        ESP_LOGI(HSERVER_TAG, "Successful Server HTTP");
+         httpd_register_uri_handler(server, &uri_post);
+     }
+return server;
+}
+
 esp_http_client_handle_t http_client_init()
 {
     esp_http_client_config_t httpConf = 
@@ -168,5 +220,7 @@ void app_main(void) {
 
     wifi_init_sta();
 
+    http_server_start();
+    
     xTaskCreate(http_client_post, "http-client", 8192, NULL, 2, NULL);
 }
