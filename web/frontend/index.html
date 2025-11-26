@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<head>
+    <title>Control of ESP</title>
+        <style>
+            .buttonContainer 
+            {
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            }
+            button 
+            {
+                margin: 12.548214px;
+                height: 125px;
+                width: 125px;
+                font-size: large;
+                font-weight: bold;
+                border: none; 
+            }
+            button:hover
+            {
+                opacity: 0.85;
+                box-shadow: 5px 5px 5px rgb(83, 83, 83);
+            }
+            #btnOn 
+            {
+                background: green;
+            }
+            #btnOff
+            {
+                background: red;
+            }
+            .fan-header
+            {
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            margin-top: 450px;
+            }
+        </style>
+</head>
+
+<body>
+    <h1 class ="fan-header">Action with Fan </h1>
+        <div class ="buttonContainer">
+            <button id ="btnOn">Turn on</button>
+            <button id ="btnOff">Turn off</button>
+        </div>
+
+</body>
