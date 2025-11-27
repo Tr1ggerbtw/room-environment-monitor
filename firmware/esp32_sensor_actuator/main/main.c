@@ -11,6 +11,7 @@
 #include "cJSON.h"
 #include "esp_http_server.h"
 #include "sensorManager.h"
+#include "actuatorManager.h"
 
 #define MY_SSID CONFIG_ESP_WIFI_SSID
 #define MY_PASS CONFIG_ESP_WIFI_PASSWORD
@@ -120,19 +121,37 @@ esp_err_t uri_post_handler(httpd_req_t *req)
     
     httpd_req_recv(req, content, recv_size);
     
+    esp_err_t result;
+
     if(content[0] == '0')
     {
+        result = fan_set_state(content[0] - '0');
+            if(result != ESP_OK)
+            {
+                const char failResp[] = "An error occured..";
+                ESP_LOGE(HSERVER_TAG, "An error occured: %s", esp_err_to_name(result));
+                httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, failResp);
+                return result;
+            }
         ESP_LOGI(HSERVER_TAG, "Turning off fan");
     }
     else if(content[0] == '1')
     {
+        result = fan_set_state(content[0] - '0');
+            if(result != ESP_OK)
+            {
+                const char failResp[] = "An error occured..";
+                ESP_LOGE(HSERVER_TAG, "An error occured: %s", esp_err_to_name(result));
+                httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, failResp);
+                return result;  
+            }
         ESP_LOGI(HSERVER_TAG, "Turning on fan");
     } else {
         ESP_LOGE(HSERVER_TAG, "Unknown command!!!");
     }
 
-    const char resp[] = "URI POST Response";
-    httpd_resp_send(req, resp, strlen(resp));
+    const char successResp[] = "Action has been successfuly executed";
+    httpd_resp_send(req, successResp, strlen(successResp));
     return ESP_OK;
 }
 httpd_handle_t http_server_start()
@@ -219,6 +238,8 @@ void app_main(void) {
     ESP_ERROR_CHECK(ret);
 
     wifi_init_sta();
+
+    actuator_init();
 
     http_server_start();
     
