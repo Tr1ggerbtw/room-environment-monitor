@@ -1,9 +1,11 @@
 const express = require('express')
 const app = express()
 const axios = require('axios');
+const cors = require('cors');
 const port = 3000
 const FIRMWARE_URL = "http://192.168.0.100:80/fan"
 
+app.use(cors()); // everyone can access this backend(better to give this allowance only to ip of our frontend)
 app.use(express.json());
 app.use(express.text());
 temperature = 0;
