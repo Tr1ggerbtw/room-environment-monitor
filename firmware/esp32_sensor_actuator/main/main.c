@@ -135,7 +135,9 @@ esp_err_t uri_post_handler(httpd_req_t *req)
             }
             ESP_LOGI(HSERVER_TAG, "Turning %s fan", ((content[0] - '0') == 0) ? "off" : "on");
     } else {
-        ESP_LOGE(HSERVER_TAG, "Unknown command!!!");
+        ESP_LOGE(HSERVER_TAG, "Unknown command");
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Unknown command");
+        return ESP_FAIL;
     }
 
     const char successResp[] = "Action has been successfuly executed";
