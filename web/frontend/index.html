@@ -59,6 +59,12 @@
                 'Content-Type': 'text/plain'
             }
         })
+        .then(function(response) {
+            console.log("Success: ", response.data)
+        })
+        .catch(function(error){
+            console.error("Error: ", error);
+        })
     }
     document.getElementById("btnOn").addEventListener('click', () => {
         console.log("Sending 1 to backend..")
