@@ -34,6 +34,17 @@ Change directory to desired folder and clone the repository
 git clone https://github.com/Tr1ggerbtw/room-environment-monitor.git 
 ```
 
+## Finding your IP Addresses
+
+For project to work properly, you need to configure two IP addresses:
+
+**How to find Backend IP:**
+* **Linux:** Open a terminal and run `ip addr`. Look for the address under your active connection (e.g., `192.168.x.x`).
+* **Windows:** Open Command Prompt and run `ipconfig`. Look for the `IPv4 Address`.
+
+**How to find your ESP32 IP:**
+When you run the `idf.py monitor` command, once the ESP32 connects to your Wi-Fi network, it will print its IP in the logs. 
+
 ## Firmware
 Open the firmware folder in your ESP-IDF environment.<br>
 Access the project configuration menu:
@@ -64,6 +75,7 @@ Open the `index.html` file in your code editor. <br>
 In the `<script>` section at the bottom, update the `BACKEND_URL` to point to your server's IP address. <br>
    * *Example:* `const BACKEND_URL = "http://192.168.0.102:3000/backend";` <br>
 ---
+
 # Start the project
 After everything is setuped, just start the project in relevant directories
 
